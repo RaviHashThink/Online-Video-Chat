@@ -1,0 +1,23 @@
+{
+  "name": "video-chat-similar-skype",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "watch": "npx watchify ./public2/main.js -o ./public2/bundle.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.15.2",
+    "google-auth-library": "^5.5.1",
+    "peer": "^0.2.8",
+    "simple-peer": "^9.6.0",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "watchify": "^3.11.1"
+  }
+}
