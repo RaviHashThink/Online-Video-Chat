@@ -1957,7 +1957,7 @@ var hexSliceLookupTable = (function () {
 })()
 
 }).call(this,require("buffer").Buffer)
-},{"base64-js":1,"buffer":3,"ieee754":5}],4:[function(require,module,exports){
+},{"base64-js":1,"buffer":3,"ieee754":6}],4:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2483,6 +2483,23 @@ function functionBindPolyfill(context) {
 }
 
 },{}],5:[function(require,module,exports){
+// originally pulled out of simple-peer
+
+module.exports = function getBrowserRTC () {
+  if (typeof window === 'undefined') return null
+  var wrtc = {
+    RTCPeerConnection: window.RTCPeerConnection || window.mozRTCPeerConnection ||
+      window.webkitRTCPeerConnection,
+    RTCSessionDescription: window.RTCSessionDescription ||
+      window.mozRTCSessionDescription || window.webkitRTCSessionDescription,
+    RTCIceCandidate: window.RTCIceCandidate || window.mozRTCIceCandidate ||
+      window.webkitRTCIceCandidate
+  }
+  if (!wrtc.RTCPeerConnection) return null
+  return wrtc
+}
+
+},{}],6:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -2568,7 +2585,32 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+},{}],8:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -2754,48 +2796,6 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],7:[function(require,module,exports){
-// originally pulled out of simple-peer
-
-module.exports = function getBrowserRTC () {
-  if (typeof window === 'undefined') return null
-  var wrtc = {
-    RTCPeerConnection: window.RTCPeerConnection || window.mozRTCPeerConnection ||
-      window.webkitRTCPeerConnection,
-    RTCSessionDescription: window.RTCSessionDescription ||
-      window.mozRTCSessionDescription || window.webkitRTCSessionDescription,
-    RTCIceCandidate: window.RTCIceCandidate || window.mozRTCIceCandidate ||
-      window.webkitRTCIceCandidate
-  }
-  if (!wrtc.RTCPeerConnection) return null
-  return wrtc
-}
-
-},{}],8:[function(require,module,exports){
-if (typeof Object.create === 'function') {
-  // implementation from standard node.js 'util' module
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-  };
-} else {
-  // old school shim for old browsers
-  module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
-  }
-}
-
 },{}],9:[function(require,module,exports){
 let promise
 
@@ -2860,7 +2860,7 @@ function randomBytes (size, cb) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":6,"safe-buffer":26}],11:[function(require,module,exports){
+},{"_process":8,"safe-buffer":26}],11:[function(require,module,exports){
 'use strict';
 
 function _inheritsLoose(subClass, superClass) { subClass.prototype = Object.create(superClass.prototype); subClass.prototype.constructor = subClass; subClass.__proto__ = superClass; }
@@ -3010,7 +3010,7 @@ module.exports.emitExperimentalWarning = process.emitWarning
   : noop;
 
 }).call(this,require('_process'))
-},{"_process":6}],13:[function(require,module,exports){
+},{"_process":8}],13:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -3152,7 +3152,7 @@ Object.defineProperty(Duplex.prototype, 'destroyed', {
   }
 });
 }).call(this,require('_process'))
-},{"./_stream_readable":15,"./_stream_writable":17,"_process":6,"inherits":8}],14:[function(require,module,exports){
+},{"./_stream_readable":15,"./_stream_writable":17,"_process":8,"inherits":7}],14:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -3192,7 +3192,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":16,"inherits":8}],15:[function(require,module,exports){
+},{"./_stream_transform":16,"inherits":7}],15:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -4282,7 +4282,7 @@ function indexOf(xs, x) {
   return -1;
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../errors":11,"../experimentalWarning":12,"./_stream_duplex":13,"./internal/streams/async_iterator":18,"./internal/streams/buffer_list":19,"./internal/streams/destroy":20,"./internal/streams/state":23,"./internal/streams/stream":24,"_process":6,"buffer":3,"events":4,"inherits":8,"string_decoder/":31,"util":2}],16:[function(require,module,exports){
+},{"../errors":11,"../experimentalWarning":12,"./_stream_duplex":13,"./internal/streams/async_iterator":18,"./internal/streams/buffer_list":19,"./internal/streams/destroy":20,"./internal/streams/state":23,"./internal/streams/stream":24,"_process":8,"buffer":3,"events":4,"inherits":7,"string_decoder/":31,"util":2}],16:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -4484,7 +4484,7 @@ function done(stream, er, data) {
   if (stream._transformState.transforming) throw new ERR_TRANSFORM_ALREADY_TRANSFORMING();
   return stream.push(null);
 }
-},{"../errors":11,"./_stream_duplex":13,"inherits":8}],17:[function(require,module,exports){
+},{"../errors":11,"./_stream_duplex":13,"inherits":7}],17:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -5170,7 +5170,7 @@ Writable.prototype._destroy = function (err, cb) {
   cb(err);
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../errors":11,"./_stream_duplex":13,"./internal/streams/destroy":20,"./internal/streams/state":23,"./internal/streams/stream":24,"_process":6,"buffer":3,"inherits":8,"util-deprecate":32}],18:[function(require,module,exports){
+},{"../errors":11,"./_stream_duplex":13,"./internal/streams/destroy":20,"./internal/streams/state":23,"./internal/streams/stream":24,"_process":8,"buffer":3,"inherits":7,"util-deprecate":32}],18:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -5380,7 +5380,7 @@ var createReadableStreamAsyncIterator = function createReadableStreamAsyncIterat
 
 module.exports = createReadableStreamAsyncIterator;
 }).call(this,require('_process'))
-},{"./end-of-stream":21,"_process":6}],19:[function(require,module,exports){
+},{"./end-of-stream":21,"_process":8}],19:[function(require,module,exports){
 'use strict';
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
@@ -5658,7 +5658,7 @@ module.exports = {
   undestroy: undestroy
 };
 }).call(this,require('_process'))
-},{"_process":6}],21:[function(require,module,exports){
+},{"_process":8}],21:[function(require,module,exports){
 // Ported from https://github.com/mafintosh/end-of-stream with
 // permission from the author, Mathias Buus (@mafintosh).
 'use strict';
@@ -6976,7 +6976,7 @@ Peer.channelConfig = {}
 module.exports = Peer
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":3,"debug":28,"get-browser-rtc":7,"queue-microtask":9,"randombytes":10,"readable-stream":25}],28:[function(require,module,exports){
+},{"buffer":3,"debug":28,"get-browser-rtc":5,"queue-microtask":9,"randombytes":10,"readable-stream":25}],28:[function(require,module,exports){
 (function (process){
 /* eslint-env browser */
 
@@ -7244,7 +7244,7 @@ formatters.j = function (v) {
 };
 
 }).call(this,require('_process'))
-},{"./common":29,"_process":6}],29:[function(require,module,exports){
+},{"./common":29,"_process":8}],29:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -8047,127 +8047,212 @@ function config (name) {
 },{}],33:[function(require,module,exports){
 var Peer = require('simple-peer');
 var peer;
-var initPeer;
-
-var isInitPeer = false;
-
 var socket = io();
 
-var localPeerId;
-var localInitPeerId;
-var remotePeerId;
-var localStream;
-var remoteStream;
 var id_token;
-var users = [];
-
-const destvideo = document.getElementById('destvideo')
-const currentvideo = document.getElementById('currentvideo')
+var localStream;
+const remotevideo = document.getElementById('remotevideo')
+const localvideo = document.getElementById('localvideo')
+var remoteUserId = "";
+var localUserId = "";
+var connectionEstablished = false;
 
 function connectPeer(userId) {
-    var rmtPeerUser = users.filter(function (item) {
-        return item.id == userId;
-    })
-    if (rmtPeerUser && rmtPeerUser.length > 0) {
-        remotePeerId = rmtPeerUser[0].peerId;
-        peer.signal(JSON.parse(remotePeerId));
-        document.getElementById("chatPane").style.display = "block";
-        document.getElementById("userListPane").style.display = "none";
-        var auth2 = gapi.auth2.getAuthInstance();
-        $.post("http://localhost:4200/chat-request", { idToken: id_token, userId: rmtPeerUser[0].id },
-            function (returnedData) {
-                if (returnedData.success) {
-                    console.log("Sent....")
-                } else {
-                    alert(returnedData.error.message)
-                }
-            }).fail(function (response) {
-                alert('Error: ' + JSON.parse(response.responseText).error.message);
-            });
+    if (localUserId != remoteUserId) {
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(function (stream) {
+                localvideo.srcObject = stream;
+                localvideo.play()
+                localStream = stream;
+                remoteUserId = userId;
+                peer = new Peer({
+                    initiator: true,
+                    channelConfig: {},
+                    channelName: 'RAVI_ONLINE_VIDEO_CHAT',
+                    config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
+                    offerOptions: {},
+                    answerOptions: {},
+                    sdpTransform: function (sdp) { return sdp },
+                    stream: stream,
+                    streams: [],
+                    trickle: true,
+                    allowHalfTrickle: false,
+                    objectMode: false
+                });
+                peer.on('signal', function (data) {
+                    console.log("ON SIGNAL")
+                    $.post("http://localhost:4200/chat-request", { idToken: id_token, userId: userId, peerId: JSON.stringify(data), type: "requesting" },
+                        function (returnedData) {
+                            if (returnedData.success) {
+                                console.log("Chat request sent to " + userId)
+                                document.getElementById("chatPane").style.display = "block";
+                                document.getElementById("userListPane").style.display = "none";
+                            } else {
+                                alert(returnedData.error.message)
+                            }
+                        }).fail(function (response) {
+                            alert('Error: ' + JSON.parse(response.responseText).error.message);
+                        });
+                })
+
+                peer.on('data', function (data) {
+                    console.log("ON DATA")
+                    $('#messages').append($('<li>').text(JSON.stringify(data)));
+                })
+
+                peer.on('connect', () => {
+                    console.log('ON CONNECT')
+                    connectionEstablished = true;
+                })
+
+                peer.on('stream', function (stream) {
+                    console.log("ON STREAM")
+                    remotevideo.srcObject = stream;
+                    remotevideo.play();
+                })
+
+                peer.on('close', function () {
+                    console.log("ON CLOSE");
+                    if (connectionEstablished) {
+                        endChat();
+                    }
+                })
+            }).catch(function (err) {
+                alert("You must accept the video permission to chat")
+            })
+    } else {
+        alert("You can not chat with yourself")
     }
 }
 
 function sendMsg(msg) {
-    if (isInitPeer) {
-        initPeer.send(msg)
-    } else {
+    if (connectionEstablished) {
         peer.send(msg)
+    } else {
+        alert("Please wait connection establishing...")
     }
-
 }
 
 socket.on('chat-members', function (usersList) {
     const myNode = document.getElementById("userListPane");
     myNode.innerHTML = '';
-    users = usersList;
     usersList.forEach(usr => {
-        myNode.innerHTML += '<div class="col"><div class="card mt-4" style = "width: 18rem;"><img class="card-img-top" src ="' + usr.picture + '" alt = "Card image cap" ><div class="card-body"><h5 class="card-title">' + usr.name + ' <span class="dot-green"></span></h5><label>Status : Online</label><label>Online Since : Online</label></div><div class="card-body"><button type="button" class="btn btn-success btn-lg btn-block" onClick="setDestUserId(\'' + usr.id + '\')">Chat</button></div ></div ></div >';
+        myNode.innerHTML += '<div class="col"><div class="card mt-4" style = "width: 18rem;"><img class="card-img-top" src ="' + usr.picture + '" alt = "Card image cap" ><div class="card-body"><h5 class="card-title">' + usr.name + ' <span class="' + (usr.status == 'online' ? 'dot-green' : 'dot-red') + '"></span></h5><label>Status : Online</label><label>Online Since : Online</label></div><div class="card-body"><button type="button" class="btn btn-success btn-lg btn-block" onClick="setDestUserId(\'' + usr.id + '\')">Chat</button></div ></div ></div >';
     });
 });
 
-socket.on('chat-request', function (userId) {
-    console.log("request user id : " + userId)
-    var rmtPeerUser = users.filter(function (item) {
-        return item.id == userId;
-    })
-    if (rmtPeerUser && rmtPeerUser.length > 0) {
-        alert(rmtPeerUser[0].name + " wants to chat with you.")
-        initPeer.signal(JSON.parse(rmtPeerUser[0].initPeerId));
-        isInitPeer = true;
-        document.getElementById("chatPane").style.display = "block";
-        document.getElementById("userListPane").style.display = "none";
-    }
-});
-
-function onInitLoad() {
+socket.on('chat-request', function (peerdata) {
+    console.log("request from user id : " + peerdata.userId)
+    alert("You have 1 chat request")
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
         .then(function (stream) {
-            thisPeerStream = stream;
-            currentvideo.srcObject = stream;
-            currentvideo.play()
+            localvideo.srcObject = stream;
+            localvideo.play()
             localStream = stream;
-            peer = new Peer({ initiator: false, trickle: false, stream: stream });
+            remoteUserId = peerdata.userId;
+            peer = new Peer({
+                initiator: false,
+                channelConfig: {},
+                channelName: 'RAVI_ONLINE_VIDEO_CHAT',
+                config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
+                offerOptions: {},
+                answerOptions: {},
+                sdpTransform: function (sdp) { return sdp },
+                stream: stream,
+                streams: [],
+                trickle: true,
+                allowHalfTrickle: false,
+                objectMode: false
+            });
             peer.on('signal', function (data) {
-                console.log(data)
-                localPeerId = data;
+                console.log("ON SIGNAL")
+                $.post("http://localhost:4200/chat-request", {
+                    idToken: id_token, userId: peerdata.userId, peerId: JSON.stringify(data), type: "accepted"
+                },
+                    function (returnedData) {
+                        if (returnedData.success) {
+                            console.log("Chat accept sent to " + peerdata.userId)
+                            document.getElementById("chatPane").style.display = "block";
+                            document.getElementById("userListPane").style.display = "none";
+                        } else {
+                            alert(returnedData.error.message)
+                        }
+                    }).fail(function (response) {
+                        alert('Error: ' + JSON.parse(response.responseText).error.message);
+                    });
             })
+
             peer.on('data', function (data) {
+                console.log("ON DATA")
                 $('#messages').append($('<li>').text(JSON.stringify(data)));
             })
 
             peer.on('connect', () => {
-                console.log('CONNECT INIT')
+                console.log('ON CONNECT')
+                connectionEstablished = true;
             })
+
             peer.on('stream', function (stream) {
-                destvideo.srcObject = stream;
-                destvideo.play();
+                console.log("ON STREAM")
+                remotevideo.srcObject = stream;
+                remotevideo.play();
             })
 
-            initPeer = new Peer({ initiator: true, trickle: false, stream: stream });
-            initPeer.on('signal', function (data) {
-                console.log(data)
-                localInitPeerId = data;
-                // document.getElementById("signinBtn").style.display = "block";
-                //$('#banner').append('<div class="g-signin2 mr-3" data-onsuccess="onSignIn" id="signinBtn"></div>')
-            })
-            initPeer.on('data', function (data) {
-                $('#messages').append($('<li>').text(JSON.stringify(data)));
+            peer.on('close', function () {
+                console.log("ON CLOSE");
+                if (connectionEstablished) {
+                    endChat();
+                }
             })
 
-            initPeer.on('connect', () => {
-                console.log('CONNECT')
-            })
-            initPeer.on('stream', function (stream) {
-                destvideo.srcObject = stream;
-                destvideo.play();
-            })
+            peer.signal(peerdata.peerId)
+        }).catch(function (err) {
+            alert("You must accept the video permission to chat")
+        })
+});
 
-        }).catch(err => console.log(err))
+socket.on('chat-accepted', function (peerdata) {
+    peer.signal(peerdata.peerId);
+});
+
+socket.onclose = function (event) {
+    alert("You connection has issue. Please refresh page and start again")
+};
+
+socket.on('end-chat', function (data) {
+    if (data.userId == remoteUserId) {
+        console.log("Chat ended with userId : " + remoteUserId)
+        document.getElementById("chatPane").style.display = "none";
+        document.getElementById("userListPane").style.display = "block";
+        localStream.getTracks().forEach(track => track.stop())
+        connectionEstablished = false;
+        remoteUserId = ""
+        peer.destroy()
+    }
+});
+
+function endChat() {
+    $.post("http://localhost:4200/end-chat", {
+        idToken: id_token, userId: remoteUserId,
+    },
+        function (returnedData) {
+            if (returnedData.success) {
+                console.log("Chat ended with userId : " + remoteUserId)
+                document.getElementById("chatPane").style.display = "none";
+                document.getElementById("userListPane").style.display = "block";
+                localStream.getTracks().forEach(track => track.stop())
+                connectionEstablished = false;
+                remoteUserId = ""
+                peer.destroy()
+            } else {
+                alert(returnedData.error.message)
+            }
+        }).fail(function (response) {
+            alert('Error: ' + JSON.parse(response.responseText).error.message);
+        });
 }
 
-
-
-var interval = setInterval(checkIdTokenCookie, 3000);
+var interval = setInterval(checkIdTokenCookie, 2000);
 
 function checkIdTokenCookie() {
     var ckies = getCookie("id_token")
@@ -8175,9 +8260,10 @@ function checkIdTokenCookie() {
         id_token = ckies;
         clearInterval(interval);
         delete_cookie("id_token")
-        $.post("http://localhost:4200/login", { idToken: id_token, peerId: JSON.stringify(localPeerId), initPeerId: JSON.stringify(localInitPeerId), socketId: socket.id },
+        $.post("http://localhost:4200/login", { idToken: id_token, socketId: socket.id },
             function (returnedData) {
                 if (returnedData.success) {
+                    localUserId = returnedData.userId;
                     console.log(returnedData);
                     document.getElementById("signinBtn").style.display = "none";
                     document.getElementById("signoutBtn").style.display = "block";
@@ -8194,7 +8280,7 @@ var delete_cookie = function (name) {
     document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 };
 
-var interval2 = setInterval(checkDestUserCookie, 3000);
+var interval2 = setInterval(checkDestUserCookie, 2000);
 
 function checkDestUserCookie() {
     var ckies = getCookie("destUserId")
@@ -8204,7 +8290,6 @@ function checkDestUserCookie() {
         delete_cookie("destUserId")
     }
 }
-
 
 function getCookie(name) {
     var value = "; " + document.cookie;
@@ -8220,6 +8305,7 @@ function signOut() {
                 auth2.signOut().then(function () {
                     document.getElementById("signinBtn").style.display = "block";
                     document.getElementById("signoutBtn").style.display = "none";
+                    endChat();
                 });
             } else {
                 alert(returnedData.error.message)
@@ -8233,6 +8319,6 @@ document.getElementById("signoutBtn").style.display = "none";
 document.getElementById("chatPane").style.display = "none";
 document.getElementById("sendMsg").addEventListener("click", sendMsg, false);
 document.getElementById("signoutBtn").addEventListener("click", signOut, false);
+document.getElementById("endChat").addEventListener("click", endChat, false);
 
-onInitLoad();
 },{"simple-peer":27}]},{},[33]);

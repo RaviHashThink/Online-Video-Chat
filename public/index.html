@@ -2,13 +2,14 @@
 <html>
 
 <head>
-    <title>Socket.IO chat</title>
+    <title>Online Video Chat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="main.css" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="https://apis.google.com/js/platform.js" async defer></script>
-    <meta name="google-signin-client_id" content="YOUR_OAUTH_CLIENTID">
+    <meta name="google-signin-client_id"
+        content="289986527913-l1j5arc27rem3ms8oosbn43ogh4rc7jt.apps.googleusercontent.com">
 </head>
 
 <body>
@@ -21,7 +22,7 @@
     </div>
     <div class="container" role="main">
         <div class="row justify-content-md-center mt-4">
-            <h1> Online Users</h1>
+            <h1> Login and Chat with Online Users</h1>
         </div>
         <div class="row justify-content-md-center" id="userListPane">
 
@@ -29,17 +30,24 @@
         <div class="row" id="chatPane">
             <div id="videoChatPane" class="justify-content-md-center">
                 <div class="col-sm-6">
-                    <video id="currentvideo" muted width="320" height="176" autoplay></video>
+                    <video id="localvideo" muted width="320" height="176" autoplay></video>
                 </div>
                 <div class="col-sm-6">
-                    <video id="destvideo" muted width="320" height="176" autoplay></video>
+                    <video id="remotevideo" width="320" height="176" autoplay></video>
                 </div>
             </div>
-            <ul id="messages"></ul>
-            <form name="formname" onsubmit="return false">
-                <input id="m" autocomplete="off" />
-                <button id="sendMsg">Send</button>
-            </form>
+            <ul id="messages" class="list-group"></ul>
+            <div class="row">
+                <div class="col-sm-6">
+                    <input id="m" class="form-control" autocomplete="off" />
+                </div>
+                <div class="col-sm-3">
+                    <button class="btn btn-success btn-block" id="sendMsg">Send</button>
+                </div>
+                <div class="col-sm-3">
+                    <button class="btn btn-danger btn-block" id="endChat">End Chat</button>
+                </div>
+            </div>
         </div>
         <footer>
 

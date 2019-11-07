@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "watch": "npx watchify ./public2/main.js -o ./public2/bundle.js"
+    "watch": "npx watchify ./public/main.js -o ./public/bundle.js"
   },
   "author": "",
   "license": "ISC",
