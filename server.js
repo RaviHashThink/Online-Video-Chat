@@ -4,7 +4,6 @@ var cors = require('cors');
 var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
-var PeerServer = require('peer').PeerServer;
 const { OAuth2Client } = require('google-auth-library');
 
 const credentials = {
@@ -125,11 +124,6 @@ app.post('/end-chat', async (req, res) => {
     });
 });
 
-http.listen(4200, function () {
+http.listen(8080, function () {
     console.log('listening on *:3000');
-});
-
-var pserver = PeerServer({
-    port: 9000,
-    path: '/peerjs'
 });

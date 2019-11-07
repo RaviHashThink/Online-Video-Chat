@@ -8081,7 +8081,7 @@ function connectPeer(userId) {
                 });
                 peer.on('signal', function (data) {
                     console.log("ON SIGNAL")
-                    $.post("http://localhost:4200/chat-request", { idToken: id_token, userId: userId, peerId: JSON.stringify(data), type: "requesting" },
+                    $.post("/chat-request", { idToken: id_token, userId: userId, peerId: JSON.stringify(data), type: "requesting" },
                         function (returnedData) {
                             if (returnedData.success) {
                                 console.log("Chat request sent to " + userId)
@@ -8166,7 +8166,7 @@ socket.on('chat-request', function (peerdata) {
             });
             peer.on('signal', function (data) {
                 console.log("ON SIGNAL")
-                $.post("http://localhost:4200/chat-request", {
+                $.post("/chat-request", {
                     idToken: id_token, userId: peerdata.userId, peerId: JSON.stringify(data), type: "accepted"
                 },
                     function (returnedData) {
@@ -8232,7 +8232,7 @@ socket.on('end-chat', function (data) {
 });
 
 function endChat() {
-    $.post("http://localhost:4200/end-chat", {
+    $.post("/end-chat", {
         idToken: id_token, userId: remoteUserId,
     },
         function (returnedData) {
@@ -8260,7 +8260,7 @@ function checkIdTokenCookie() {
         id_token = ckies;
         clearInterval(interval);
         delete_cookie("id_token")
-        $.post("http://localhost:4200/login", { idToken: id_token, socketId: socket.id },
+        $.post("/login", { idToken: id_token, socketId: socket.id },
             function (returnedData) {
                 if (returnedData.success) {
                     localUserId = returnedData.userId;
@@ -8299,7 +8299,7 @@ function getCookie(name) {
 
 function signOut() {
     var auth2 = gapi.auth2.getAuthInstance();
-    $.post("http://localhost:4200/logout", { idToken: id_token },
+    $.post("/logout", { idToken: id_token },
         function (returnedData) {
             if (returnedData.success) {
                 auth2.signOut().then(function () {
