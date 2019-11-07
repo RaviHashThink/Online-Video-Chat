@@ -22,7 +22,16 @@ function connectPeer(userId) {
                     initiator: true,
                     channelConfig: {},
                     channelName: 'RAVI_ONLINE_VIDEO_CHAT',
-                    config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
+                    config: {
+
+                        iceServers: [
+                            {
+                                urls: "numb.viagenie.ca",
+                                username: "teja.cse596@gmail.com",
+                                credential: "chinna1234"
+                            }
+                        ]
+                    },
                     offerOptions: {},
                     answerOptions: {},
                     sdpTransform: function (sdp) { return sdp },
