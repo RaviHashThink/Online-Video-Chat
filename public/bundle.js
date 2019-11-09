@@ -8056,17 +8056,109 @@ const localvideo = document.getElementById('localvideo')
 var remoteUserId = "";
 var localUserId = "";
 var connectionEstablished = false;
+var chatrequestSent = false;
+var chatrequestaccept = false;
 
 function connectPeer(userId) {
-    if (localUserId != remoteUserId) {
+    if (!chatrequestSent) {
+        chatrequestSent = true;
+        if (localUserId != remoteUserId) {
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(function (stream) {
+                    localvideo.srcObject = stream;
+                    localvideo.play()
+                    localStream = stream;
+                    remoteUserId = userId;
+                    peer = new Peer({
+                        initiator: true,
+                        channelConfig: {},
+                        channelName: 'RAVI_ONLINE_VIDEO_CHAT',
+                        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
+                        offerOptions: {},
+                        answerOptions: {},
+                        sdpTransform: function (sdp) { return sdp },
+                        stream: stream,
+                        streams: [],
+                        trickle: true,
+                        allowHalfTrickle: false,
+                        objectMode: false
+                    });
+                    peer.on('signal', function (data) {
+                        console.log("ON SIGNAL")
+                        $.post("/chat-request", { idToken: id_token, userId: userId, peerId: JSON.stringify(data), type: "requesting" },
+                            function (returnedData) {
+                                if (returnedData.success) {
+                                    console.log("Chat request sent to " + userId)
+                                    document.getElementById("chatPane").style.display = "block";
+                                    document.getElementById("userListPane").style.display = "none";
+                                } else {
+                                    alert(returnedData.error.message)
+                                }
+                            }).fail(function (response) {
+                                alert('Error: ' + JSON.parse(response.responseText).error.message);
+                            });
+                    })
+
+                    peer.on('data', function (data) {
+                        console.log("ON DATA")
+                        $('#messages').append($('<li>').text(JSON.stringify(data)));
+                    })
+
+                    peer.on('connect', () => {
+                        console.log('ON CONNECT')
+                        connectionEstablished = true;
+                    })
+
+                    peer.on('stream', function (stream) {
+                        console.log("ON STREAM")
+                        remotevideo.srcObject = stream;
+                        remotevideo.play();
+                    })
+
+                    peer.on('close', function () {
+                        console.log("ON CLOSE");
+                        if (connectionEstablished) {
+                            endChat();
+                        }
+                    })
+                }).catch(function (err) {
+                    alert("You must accept the video permission to chat")
+                })
+        } else {
+            alert("You can not chat with yourself")
+        }
+    }
+}
+
+function sendMsg(msg) {
+    if (connectionEstablished) {
+        peer.send(msg)
+    } else {
+        alert("Please wait connection establishing...")
+    }
+}
+
+socket.on('chat-members', function (usersList) {
+    const myNode = document.getElementById("userListPane");
+    myNode.innerHTML = '';
+    usersList.forEach(usr => {
+        myNode.innerHTML += '<div class="col"><div class="card mt-4" style = "width: 18rem;"><img class="card-img-top" src ="' + usr.picture + '" alt = "Card image cap" ><div class="card-body"><h5 class="card-title">' + usr.name + ' <span class="' + (usr.status == 'online' ? 'dot-green' : 'dot-red') + '"></span></h5><label>Status : Online</label><label>Online Since : Online</label></div><div class="card-body"><button type="button" class="btn btn-success btn-lg btn-block" onClick="setDestUserId(\'' + usr.id + '\')">Chat</button></div ></div ></div >';
+    });
+});
+
+socket.on('chat-request', function (peerdata) {
+    if (!chatrequestaccept) {
+        chatrequestaccept = true;
+        console.log("request from user id : " + peerdata.userId)
+        alert("You have 1 chat request")
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
             .then(function (stream) {
                 localvideo.srcObject = stream;
                 localvideo.play()
                 localStream = stream;
-                remoteUserId = userId;
+                remoteUserId = peerdata.userId;
                 peer = new Peer({
-                    initiator: true,
+                    initiator: false,
                     channelConfig: {},
                     channelName: 'RAVI_ONLINE_VIDEO_CHAT',
                     config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
@@ -8081,10 +8173,12 @@ function connectPeer(userId) {
                 });
                 peer.on('signal', function (data) {
                     console.log("ON SIGNAL")
-                    $.post("/chat-request", { idToken: id_token, userId: userId, peerId: JSON.stringify(data), type: "requesting" },
+                    $.post("/chat-request", {
+                        idToken: id_token, userId: peerdata.userId, peerId: JSON.stringify(data), type: "accepted"
+                    },
                         function (returnedData) {
                             if (returnedData.success) {
-                                console.log("Chat request sent to " + userId)
+                                console.log("Chat accept sent to " + peerdata.userId)
                                 document.getElementById("chatPane").style.display = "block";
                                 document.getElementById("userListPane").style.display = "none";
                             } else {
@@ -8117,98 +8211,12 @@ function connectPeer(userId) {
                         endChat();
                     }
                 })
+
+                peer.signal(peerdata.peerId)
             }).catch(function (err) {
                 alert("You must accept the video permission to chat")
             })
-    } else {
-        alert("You can not chat with yourself")
     }
-}
-
-function sendMsg(msg) {
-    if (connectionEstablished) {
-        peer.send(msg)
-    } else {
-        alert("Please wait connection establishing...")
-    }
-}
-
-socket.on('chat-members', function (usersList) {
-    const myNode = document.getElementById("userListPane");
-    myNode.innerHTML = '';
-    usersList.forEach(usr => {
-        myNode.innerHTML += '<div class="col"><div class="card mt-4" style = "width: 18rem;"><img class="card-img-top" src ="' + usr.picture + '" alt = "Card image cap" ><div class="card-body"><h5 class="card-title">' + usr.name + ' <span class="' + (usr.status == 'online' ? 'dot-green' : 'dot-red') + '"></span></h5><label>Status : Online</label><label>Online Since : Online</label></div><div class="card-body"><button type="button" class="btn btn-success btn-lg btn-block" onClick="setDestUserId(\'' + usr.id + '\')">Chat</button></div ></div ></div >';
-    });
-});
-
-socket.on('chat-request', function (peerdata) {
-    console.log("request from user id : " + peerdata.userId)
-    alert("You have 1 chat request")
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        .then(function (stream) {
-            localvideo.srcObject = stream;
-            localvideo.play()
-            localStream = stream;
-            remoteUserId = peerdata.userId;
-            peer = new Peer({
-                initiator: false,
-                channelConfig: {},
-                channelName: 'RAVI_ONLINE_VIDEO_CHAT',
-                config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
-                offerOptions: {},
-                answerOptions: {},
-                sdpTransform: function (sdp) { return sdp },
-                stream: stream,
-                streams: [],
-                trickle: true,
-                allowHalfTrickle: false,
-                objectMode: false
-            });
-            peer.on('signal', function (data) {
-                console.log("ON SIGNAL")
-                $.post("/chat-request", {
-                    idToken: id_token, userId: peerdata.userId, peerId: JSON.stringify(data), type: "accepted"
-                },
-                    function (returnedData) {
-                        if (returnedData.success) {
-                            console.log("Chat accept sent to " + peerdata.userId)
-                            document.getElementById("chatPane").style.display = "block";
-                            document.getElementById("userListPane").style.display = "none";
-                        } else {
-                            alert(returnedData.error.message)
-                        }
-                    }).fail(function (response) {
-                        alert('Error: ' + JSON.parse(response.responseText).error.message);
-                    });
-            })
-
-            peer.on('data', function (data) {
-                console.log("ON DATA")
-                $('#messages').append($('<li>').text(JSON.stringify(data)));
-            })
-
-            peer.on('connect', () => {
-                console.log('ON CONNECT')
-                connectionEstablished = true;
-            })
-
-            peer.on('stream', function (stream) {
-                console.log("ON STREAM")
-                remotevideo.srcObject = stream;
-                remotevideo.play();
-            })
-
-            peer.on('close', function () {
-                console.log("ON CLOSE");
-                if (connectionEstablished) {
-                    endChat();
-                }
-            })
-
-            peer.signal(peerdata.peerId)
-        }).catch(function (err) {
-            alert("You must accept the video permission to chat")
-        })
 });
 
 socket.on('chat-accepted', function (peerdata) {
