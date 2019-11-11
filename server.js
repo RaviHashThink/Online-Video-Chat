@@ -84,7 +84,7 @@ app.post('/chat-request', async (req, res) => {
     let remoteUser = users.get(req.body.userId);
     //if (remoteUser.status == "online") {
     if (req.body.type == "requesting") {
-        io.to(remoteUser.socketId).emit('chat-request', { userId: payload['sub'], peerId: req.body.peerId });
+        io.to(remoteUser.socketId).emit('chat-request', { userId: payload['sub'], peerId: req.body.peerId, sdp: req.body.sdp });
     }
     if (req.body.type == "accepted") {
         io.to(remoteUser.socketId).emit('chat-accepted', { userId: payload['sub'], peerId: req.body.peerId });

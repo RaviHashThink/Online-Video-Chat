@@ -7,10 +7,12 @@ var localStream;
 const remotevideo = document.getElementById('remotevideo')
 const localvideo = document.getElementById('localvideo')
 var remoteUserId = "";
+var remoteUser = "";
 var localUserId = "";
 var connectionEstablished = false;
 var chatrequestSent = false;
 var chatrequestaccept = false;
+var chatUsers;
 
 function connectPeer(userId) {
     if (!chatrequestSent) {
@@ -22,19 +24,13 @@ function connectPeer(userId) {
                     localvideo.play()
                     localStream = stream;
                     remoteUserId = userId;
+                    for (var i = 0; i < chatUsers.length; i++) {
+                        if (chatUsers[i].id == remoteUserId) {
+                            remoteUser = chatUsers[i];
+                        }
+                    }
                     peer = new Peer({
-                        initiator: true,
-                        channelConfig: {},
-                        channelName: 'RAVI_ONLINE_VIDEO_CHAT',
-                        config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
-                        offerOptions: {},
-                        answerOptions: {},
-                        sdpTransform: function (sdp) { return sdp },
-                        stream: stream,
-                        streams: [],
-                        trickle: true,
-                        allowHalfTrickle: false,
-                        objectMode: false
+                        initiator: true, stream: stream, trickle: true,
                     });
                     peer.on('signal', function (data) {
                         console.log("ON SIGNAL")
@@ -54,12 +50,13 @@ function connectPeer(userId) {
 
                     peer.on('data', function (data) {
                         console.log("ON DATA")
-                        $('#messages').append($('<li>').text(JSON.stringify(data)));
+                        $('#messages').append('<li class="list-group-item"><img src="' + remoteUser.picture + '" class="rounded-circle" width="40px" alt="Cinque Terre"> ' + (new TextDecoder("utf-8").decode(data)) + '</li>');
                     })
 
                     peer.on('connect', () => {
                         console.log('ON CONNECT')
                         connectionEstablished = true;
+                        peer.addStream(localStream);
                     })
 
                     peer.on('stream', function (stream) {
@@ -83,9 +80,17 @@ function connectPeer(userId) {
     }
 }
 
-function sendMsg(msg) {
+function sendMsg() {
+    var msg = document.getElementById('m').value;
     if (connectionEstablished) {
-        peer.send(msg)
+        if (msg.length) {
+            peer.send(msg);
+            document.getElementById('m').value = "";
+            $('#messages').append('<li class="list-group-item text-right">You: ' + msg + '</li>');
+        } else {
+            alert("Type something")
+        }
+
     } else {
         alert("Please wait connection establishing...")
     }
@@ -94,6 +99,7 @@ function sendMsg(msg) {
 socket.on('chat-members', function (usersList) {
     const myNode = document.getElementById("userListPane");
     myNode.innerHTML = '';
+    chatUsers = usersList;
     usersList.forEach(usr => {
         myNode.innerHTML += '<div class="col"><div class="card mt-4" style = "width: 18rem;"><img class="card-img-top" src ="' + usr.picture + '" alt = "Card image cap" ><div class="card-body"><h5 class="card-title">' + usr.name + ' <span class="' + (usr.status == 'online' ? 'dot-green' : 'dot-red') + '"></span></h5><label>Status : Online</label><label>Online Since : Online</label></div><div class="card-body"><button type="button" class="btn btn-success btn-lg btn-block" onClick="setDestUserId(\'' + usr.id + '\')">Chat</button></div ></div ></div >';
     });
@@ -102,8 +108,13 @@ socket.on('chat-members', function (usersList) {
 socket.on('chat-request', function (peerdata) {
     if (!chatrequestaccept) {
         chatrequestaccept = true;
+        for (var i = 0; i < chatUsers.length; i++) {
+            if (chatUsers[i].id == peerdata.userId) {
+                remoteUser = chatUsers[i];
+            }
+        }
         console.log("request from user id : " + peerdata.userId)
-        alert("You have 1 chat request")
+        alert("You have chat request from " + remoteUser.name)
         navigator.mediaDevices.getUserMedia({ video: true, audio: true })
             .then(function (stream) {
                 localvideo.srcObject = stream;
@@ -111,18 +122,7 @@ socket.on('chat-request', function (peerdata) {
                 localStream = stream;
                 remoteUserId = peerdata.userId;
                 peer = new Peer({
-                    initiator: false,
-                    channelConfig: {},
-                    channelName: 'RAVI_ONLINE_VIDEO_CHAT',
-                    config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
-                    offerOptions: {},
-                    answerOptions: {},
-                    sdpTransform: function (sdp) { return sdp },
-                    stream: stream,
-                    streams: [],
-                    trickle: true,
-                    allowHalfTrickle: false,
-                    objectMode: false
+                    initiator: false, stream: localStream, trickle: true
                 });
                 peer.on('signal', function (data) {
                     console.log("ON SIGNAL")
@@ -144,12 +144,13 @@ socket.on('chat-request', function (peerdata) {
 
                 peer.on('data', function (data) {
                     console.log("ON DATA")
-                    $('#messages').append($('<li>').text(JSON.stringify(data)));
+                    $('#messages').append('<li class="list-group-item"><img src="' + remoteUser.picture + '" class="rounded-circle" width="40px" alt="Cinque Terre"> ' + (new TextDecoder("utf-8").decode(data)) + '</li>');
                 })
 
                 peer.on('connect', () => {
                     console.log('ON CONNECT')
                     connectionEstablished = true;
+                    peer.addStream(localStream);
                 })
 
                 peer.on('stream', function (stream) {

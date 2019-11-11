@@ -28,18 +28,19 @@
 
         </div>
         <div class="row" id="chatPane">
-            <div id="videoChatPane" class="justify-content-md-center">
+            <div id="videoChatPane" class="row justify-content-md-center">
                 <div class="col-sm-6">
-                    <video id="localvideo" muted width="320" height="176" autoplay></video>
+                    <video id="localvideo" muted width="100%" autoplay></video>
                 </div>
                 <div class="col-sm-6">
-                    <video id="remotevideo" width="320" height="176" autoplay></video>
+                    <video id="remotevideo" width="100%" autoplay></video>
                 </div>
             </div>
+            <h1>Chat Messages</h1>
             <ul id="messages" class="list-group"></ul>
             <div class="row">
                 <div class="col-sm-6">
-                    <input id="m" class="form-control" autocomplete="off" />
+                    <input id="m" class="form-control" autocomplete="off" placeholder="type your message here" />
                 </div>
                 <div class="col-sm-3">
                     <button class="btn btn-success btn-block" id="sendMsg">Send</button>
