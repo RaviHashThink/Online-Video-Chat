@@ -14,6 +14,50 @@ var chatrequestSent = false;
 var chatrequestaccept = false;
 var chatUsers;
 
+var interval = setInterval(checkIdTokenCookie, 2000);
+var interval2 = setInterval(checkDestUserCookie, 2000);
+
+function checkIdTokenCookie() {
+    var ckies = getCookie("id_token")
+    if (ckies) {
+        id_token = ckies;
+        clearInterval(interval);
+        delete_cookie("id_token")
+        $.post("/login", { idToken: id_token, socketId: socket.id },
+            function (returnedData) {
+                if (returnedData.success) {
+                    localUserId = returnedData.userId;
+                    console.log(returnedData);
+                    document.getElementById("signinBtn").style.display = "none";
+                    document.getElementById("signoutBtn").style.display = "block";
+                } else {
+                    alert(returnedData.error.message)
+                }
+            }).fail(function (response) {
+                alert('Error: ' + JSON.parse(response.responseText).error.message);
+            });
+    }
+}
+
+var delete_cookie = function (name) {
+    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+};
+
+function checkDestUserCookie() {
+    var ckies = getCookie("destUserId")
+    if (ckies) {
+        clearInterval(interval2);
+        connectPeer(ckies);
+        delete_cookie("destUserId")
+    }
+}
+
+function getCookie(name) {
+    var value = "; " + document.cookie;
+    var parts = value.split("; " + name + "=");
+    if (parts.length == 2) return parts.pop().split(";").shift();
+}
+
 function connectPeer(userId) {
     if (!chatrequestSent) {
         chatrequestSent = true;
@@ -184,6 +228,7 @@ socket.onclose = function (event) {
 socket.on('end-chat', function (data) {
     if (data.userId == remoteUserId) {
         console.log("Chat ended with userId : " + remoteUserId)
+        interval2 = setInterval(checkDestUserCookie, 2000);
         document.getElementById("chatPane").style.display = "none";
         document.getElementById("userListPane").style.display = "block";
         localStream.getTracks().forEach(track => track.stop())
@@ -200,6 +245,7 @@ function endChat() {
         function (returnedData) {
             if (returnedData.success) {
                 console.log("Chat ended with userId : " + remoteUserId)
+                interval2 = setInterval(checkDestUserCookie, 2000);
                 document.getElementById("chatPane").style.display = "none";
                 document.getElementById("userListPane").style.display = "block";
                 localStream.getTracks().forEach(track => track.stop())
@@ -214,57 +260,13 @@ function endChat() {
         });
 }
 
-var interval = setInterval(checkIdTokenCookie, 2000);
-
-function checkIdTokenCookie() {
-    var ckies = getCookie("id_token")
-    if (ckies) {
-        id_token = ckies;
-        clearInterval(interval);
-        delete_cookie("id_token")
-        $.post("/login", { idToken: id_token, socketId: socket.id },
-            function (returnedData) {
-                if (returnedData.success) {
-                    localUserId = returnedData.userId;
-                    console.log(returnedData);
-                    document.getElementById("signinBtn").style.display = "none";
-                    document.getElementById("signoutBtn").style.display = "block";
-                } else {
-                    alert(returnedData.error.message)
-                }
-            }).fail(function (response) {
-                alert('Error: ' + JSON.parse(response.responseText).error.message);
-            });
-    }
-}
-
-var delete_cookie = function (name) {
-    document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-};
-
-var interval2 = setInterval(checkDestUserCookie, 2000);
-
-function checkDestUserCookie() {
-    var ckies = getCookie("destUserId")
-    if (ckies) {
-        clearInterval(interval2);
-        connectPeer(ckies);
-        delete_cookie("destUserId")
-    }
-}
-
-function getCookie(name) {
-    var value = "; " + document.cookie;
-    var parts = value.split("; " + name + "=");
-    if (parts.length == 2) return parts.pop().split(";").shift();
-}
-
 function signOut() {
     var auth2 = gapi.auth2.getAuthInstance();
     $.post("/logout", { idToken: id_token },
         function (returnedData) {
             if (returnedData.success) {
                 auth2.signOut().then(function () {
+                    interval = setInterval(checkIdTokenCookie, 2000);
                     document.getElementById("signinBtn").style.display = "block";
                     document.getElementById("signoutBtn").style.display = "none";
                     endChat();
