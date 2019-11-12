@@ -112,7 +112,7 @@ app.post('/end-chat', async (req, res) => {
     remoteUser.status = "online";
 
     let remote2User = users.get(payload['sub']);
-    remoteUser.status = "online";
+    remote2User.status = "online";
 
     let socId = users.get(req.body.userId).socketId;
     io.to(socId).emit('end-chat', { userId: payload['sub'] });
