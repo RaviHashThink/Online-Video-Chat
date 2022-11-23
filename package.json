@@ -15,7 +15,7 @@
     "google-auth-library": "^5.5.1",
     "peer": "^0.2.8",
     "simple-peer": "^9.6.0",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.5.0"
   },
   "devDependencies": {
     "watchify": "^3.11.1"
